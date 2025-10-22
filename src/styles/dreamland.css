@@ -1,0 +1,60 @@
+/* ============================
+   DREAMLAND — GARDEN NIGHT THEME (scoped)
+   ============================ */
+
+.dl-scope {
+  position: fixed;
+  inset: 0;                 /* full-viewport */
+  overflow: hidden;
+  z-index: 5;               /* sit above any global starfield layers */
+  background:
+    /* Moon glow (G2 focal point) */
+    radial-gradient(1200px 900px at 50% -20%, rgba(80, 140, 100, 0.38), transparent 70%),
+    /* Deep garden night base */
+    linear-gradient(180deg, #020403 0%, #040705 55%, #030504 100%);
+    pointer-events: none; 
+}
+
+/* Soft vignette for eye focus */
+.dl-scope::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 85%);
+  z-index: 0;
+}
+
+/* Dust motes (very subtle movement) */
+.dl-scope::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,0.10) 1px, transparent 1px);
+  background-size: 2px 2px;
+  opacity: 0.22;
+  animation: dreamlandMotes 38s linear infinite;
+  z-index: 0;
+}
+
+/* Floating animation */
+@keyframes dreamlandMotes {
+  0%   { transform: translateY(0) translateX(0); }
+  50%  { transform: translateY(-30px) translateX(25px); }
+  100% { transform: translateY(0) translateX(0); }
+}
+
+/* Dropcap (kept here or in globals; both OK) */
+.dreamland-dropcap:first-letter {
+  float: left;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', Times, serif;
+  font-weight: 600;
+  font-size: 3rem;
+  line-height: 0.95;
+  padding-right: 10px;
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 2px 12px rgba(255, 255, 255, 0.05);
+}

@@ -1,0 +1,44 @@
+// src/App.jsx
+import React from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import Starfield from "./components/Starfield.jsx";
+import NavBar from "./components/NavBar.jsx";
+
+import Entry from "./pages/Entry.jsx";
+import Library from "./pages/Library.jsx";
+import WorkDetail from "./pages/WorkDetail.jsx";
+import ReaderRouter from "./pages/ReaderRouter.jsx";
+
+import RouteFade from "./components/RouteFade.jsx";       // ✅ fade wrapper
+import BusinessFooter from "./components/BusinessFooter.jsx"; // ✅ version / TOS / contact
+
+export default function App() {
+  const location = useLocation();
+
+  return (
+    <div className="relative min-h-screen bg-black">
+      {/* Background + persistent UI */}
+      <Starfield />
+      <NavBar />
+
+      {/* Main content with route transitions (NavBar stays static) */}
+      <main className="relative z-10 pt-20">
+        <RouteFade locationKey={location.pathname}>
+          <Routes location={location}>
+            <Route path="/" element={<Entry />} />
+            <Route path="/library" element={<Library />} />
+            <Route path="/work/:slug" element={<WorkDetail />} />
+            <Route path="/read/:slug" element={<ReaderRouter />} />
+          </Routes>
+        </RouteFade>
+      </main>
+
+      {/* Footer with version, TOS + Contact */}
+      <BusinessFooter
+        version="v0.3.0"
+        tosLinkType="modal"
+        contactHref="mailto:aidandaley@example.com?subject=Dreamland%20Support"
+      />
+    </div>
+  );
+}

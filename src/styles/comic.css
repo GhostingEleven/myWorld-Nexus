@@ -1,0 +1,25 @@
+/* src/styles/comic.css */
+
+/* Google Fonts are added in index.html below */
+.kryx-issue-title {
+  font-family: "Bangers", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: 1.7rem;
+  line-height: 1.2;
+  letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.96);
+  text-shadow: 0 2px 14px rgba(0,0,0,0.35);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+
+.kryx-body {
+  font-family: "Comic Neue", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: rgba(240,240,240,0.95);
+  text-shadow: 0 1px 8px rgba(0,0,0,0.25);
+}
+
+.kryx-p {
+  font-size: 1.02rem;
+  line-height: 1.9;
+  margin-bottom: 0.9rem;
+}

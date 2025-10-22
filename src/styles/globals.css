@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global app styling */
+:root {
+  color-scheme: dark;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  background: #000;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+/* Subtle neon grid under stars (depth) */
+.bg-neon-grid {
+  background-image:
+    linear-gradient(rgba(59,224,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(138,124,255,0.06) 1px, transparent 1px);
+  background-size: 60px 60px, 60px 60px;
+  background-position: 0 0, 0 0;
+}
+
+/* Neon link aesthetic */
+a.neon-link {
+  text-shadow: 0 0 8px rgba(59,224,255,0.8), 0 0 20px rgba(138,124,255,0.6);
+  transition: transform .12s ease, text-shadow .12s ease;
+}
+
+a.neon-link:hover {
+  transform: translateY(-1px);
+  text-shadow: 0 0 12px rgba(59,224,255,1), 0 0 28px rgba(138,124,255,0.9);
+}
+
+/* Card glow */
+.card-glow {
+  box-shadow: 0 0 12px rgba(59,224,255,0.25), 0 0 28px rgba(138,124,255,0.18);
+}
+
+/* Glassy panel */
+.glass {
+  backdrop-filter: blur(8px);
+  background: rgba(10, 10, 20, 0.55);
+  border: 1px solid rgba(59,224,255,0.18);
+  border-radius: 16px;
+}
+  /* ============================
+   MOBILE READER POLISH
+============================ */
+
+.reader-body {
+  padding: 1rem 1.2rem;
+  line-height: 1.75;
+  font-size: 1.05rem;
+  max-width: 750px;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .reader-body {
+    padding: 1.1rem 1rem 1.6rem;
+    line-height: 1.82;
+    font-size: 1.07rem;
+  }
+}
+
+.reader-footer {
+  padding: 0.75rem 1rem 1.6rem;
+  text-align: center;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.reader-footer button {
+  padding: 8px 12px;
+}
+
+.support-btn {
+  margin-top: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  display: inline-block;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: #ffe9a6;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+}
+.support-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+  

@@ -1,0 +1,31 @@
+/* ===========================
+   Entry Page Animations
+   =========================== */
+
+/* Fade-in for title */
+.fade-in-title {
+  opacity: 0;
+  animation: fadeIn 0.9s ease forwards;
+}
+
+/* Delay subtitle for staggered elegance */
+.fade-in-subtitle {
+  opacity: 0;
+  animation: fadeIn 1.2s ease forwards 0.4s;
+}
+
+/* Pulse on link */
+.pulse-link {
+  animation: pulseGlow 6s ease-in-out infinite 1.8s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0%   { text-shadow: 0 0 8px rgba(59,224,255,0.6), 0 0 18px rgba(138,124,255,0.4); }
+  50%  { text-shadow: 0 0 14px rgba(59,224,255,1),   0 0 34px rgba(138,124,255,0.9); }
+  100% { text-shadow: 0 0 8px rgba(59,224,255,0.6), 0 0 18px rgba(138,124,255,0.4); }
+}
