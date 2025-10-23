@@ -6,7 +6,6 @@ import useSwipe from "../hooks/useSwipe.js";
 import useEdgeTap from "../hooks/useEdgeTap.js";
 
 export default function ReaderSciFi({ slug, title, chapters, titles, preview }) {
-  // Restore last position (per book)
   const initialIndex = (() => {
     const saved = getProgress(slug);
     return preview ? 0 : Math.min(saved, Math.max(0, chapters.length - 1));
@@ -15,20 +14,18 @@ export default function ReaderSciFi({ slug, title, chapters, titles, preview }) 
   const [index, setIndex] = useState(initialIndex);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const panelRef = useRef(null);      // for closing the chapter menu
-  const contentRef = useRef(null);    // desktop scroll container
-  const containerRef = useRef(null);  // for copy/touch prevention
+  const panelRef = useRef(null);
+  const contentRef = useRef(null);
+  const containerRef = useRef(null);
 
   const lastIndex = (preview && chapters.length > 0) ? 0 : chapters.length - 1;
   const pageTitle = titles?.[index] || title;
   const page = chapters?.[index] || "";
 
-  // Persist progress when page changes
   useEffect(() => {
     if (!preview) setProgress(slug, index);
   }, [slug, index, preview]);
 
-  // Close chapter menu if clicking outside
   useEffect(() => {
     function onDocClick(e) {
       if (!menuOpen) return;
@@ -40,7 +37,6 @@ export default function ReaderSciFi({ slug, title, chapters, titles, preview }) 
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [menuOpen]);
 
-  // Scroll-to-top on page change
   useEffect(() => {
     const isMobile = window.innerWidth < 768;
     if (isMobile) {
@@ -54,24 +50,19 @@ export default function ReaderSciFi({ slug, title, chapters, titles, preview }) 
   function prevPage() { if (index > 0) setIndex(index - 1); }
   function jumpTo(i) { setIndex(i); setMenuOpen(false); }
 
-  // ✅ SWIPE + EDGE TAP HOOKS
   const swipeBind = useSwipe({ onLeft: nextPage, onRight: prevPage });
   const tapBind = useEdgeTap({ onLeft: prevPage, onRight: nextPage, edgePercent: 0.18 });
 
-  // ✅ COPY / SELECT / TOUCH-CALLOUT DISABLE
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-
     const prevent = (e) => e.preventDefault();
     el.addEventListener("contextmenu", prevent);
     el.addEventListener("copy", prevent);
-
     el.style.userSelect = "none";
     el.style.webkitUserSelect = "none";
     el.style.webkitTouchCallout = "none";
     el.style.webkitUserDrag = "none";
-
     return () => {
       el.removeEventListener("contextmenu", prevent);
       el.removeEventListener("copy", prevent);
@@ -88,9 +79,8 @@ export default function ReaderSciFi({ slug, title, chapters, titles, preview }) 
       <div className="max-w-4xl mx-auto">
         <div
           className="
-            relative
-            md:rounded-2xl md:p-6
-            md:bg-black/60 md:border md:border-neon-blue/30
+            relative rounded-2xl p-4 md:p-6
+            bg-black/50 backdrop-blur-md border border-neon-blue/30
           "
           style={{
             boxShadow:
@@ -98,7 +88,7 @@ export default function ReaderSciFi({ slug, title, chapters, titles, preview }) 
           }}
         >
           {/* Header */}
-          <header className="flex items-center justify-between px-4 md:px-0 mb-4">
+          <header className="flex items-center justify-between mb-4">
             <h1 className="text-base md:text-lg tracking-wide text-neon-blue uppercase">
               {title}
             </h1>
@@ -115,12 +105,10 @@ export default function ReaderSciFi({ slug, title, chapters, titles, preview }) 
               </Link>
             </div>
 
-            {/* Chapter Menu */}
             <div
               ref={panelRef}
               className={`
-                absolute right-4 md:right-6 top-16
-                w-56 rounded-xl overflow-hidden border border-neon-blue/30 bg-black/80
+                absolute right-4 top-12 w-56 rounded-xl overflow-hidden border border-neon-blue/30 bg-black/80
                 transition-all duration-200 origin-top z-30
                 ${menuOpen ? "opacity-100 scale-y-100" : "opacity-0 scale-y-0 pointer-events-none"}
               `}
@@ -132,7 +120,7 @@ export default function ReaderSciFi({ slug, title, chapters, titles, preview }) 
                     key={t + i}
                     onClick={() => jumpTo(i)}
                     className={`w-full text-left px-3 py-2 text-sm
-                                ${i === index ? "bg-white/10 text-white" : "text-neutral-300 hover:bg-white/5 hover:text-white"}`}
+                      ${i === index ? "bg-white/10 text-white" : "text-neutral-300 hover:bg-white/5 hover:text-white"}`}
                   >
                     {t}
                   </button>
@@ -142,13 +130,7 @@ export default function ReaderSciFi({ slug, title, chapters, titles, preview }) 
           </header>
 
           {/* Body */}
-          <div
-            className="
-              relative overflow-hidden
-              md:rounded-xl md:p-6
-              md:bg-black/40 md:border md:border-white/10
-            "
-          >
+          <div className="relative overflow-hidden rounded-xl p-4 md:p-6 bg-black/40 border border-white/10">
             <div
               className="pointer-events-none absolute inset-0 opacity-10"
               style={{
@@ -159,11 +141,7 @@ export default function ReaderSciFi({ slug, title, chapters, titles, preview }) 
 
             <div
               ref={contentRef}
-              className="
-                relative z-10
-                px-4 md:px-0
-                md:max-h-[70vh] md:overflow-y-auto
-              "
+              className="relative z-10 px-1 md:px-0 md:max-h-[70vh] md:overflow-y-auto"
             >
               <div className="text-neutral-300/90 text-xs tracking-widest mb-1">
                 {index + 1} / {lastIndex + 1}
@@ -174,11 +152,7 @@ export default function ReaderSciFi({ slug, title, chapters, titles, preview }) 
               </h2>
 
               <article
-                className="
-                  leading-7 md:leading-7
-                  text-neutral-200
-                  whitespace-pre-line
-                "
+                className="leading-7 md:leading-7 text-neutral-200 whitespace-pre-line"
                 style={{ textAlign: "left" }}
               >
                 {page}
@@ -193,7 +167,7 @@ export default function ReaderSciFi({ slug, title, chapters, titles, preview }) 
           </div>
 
           {/* Footer Nav */}
-          <footer className="mt-6 px-4 md:px-0 flex items-center justify-between text-sm text-neutral-400">
+          <footer className="mt-6 flex items-center justify-between text-sm text-neutral-400">
             <button
               onClick={prevPage}
               disabled={index === 0}

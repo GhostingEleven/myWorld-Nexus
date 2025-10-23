@@ -21,6 +21,13 @@ export default function Entry() {
         >
           Enter Library →
         </Link>
+        
+        <footer className="mt-10 w-full text-center">
+  <p className="text-[10px] md:text-xs text-neutral-400/60 tracking-wide">
+    Create your own myWorld app — contact.myworldnexus@gmail.com
+  </p>
+</footer>
+
       </div>
     </section>
   );
