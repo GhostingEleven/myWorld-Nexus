@@ -130,7 +130,7 @@ export default function ReaderSciFi({ slug, title, chapters, titles, preview }) 
           </header>
 
           {/* Body */}
-          <div className="relative overflow-hidden rounded-xl p-4 md:p-6 bg-black/40 border border-white/10">
+          <div className="relative overflow-hidden rounded-xl p-4 md:p-6 bg-black/20 border border-white/10">
             <div
               className="pointer-events-none absolute inset-0 opacity-10"
               style={{
