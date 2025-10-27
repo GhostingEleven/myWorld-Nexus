@@ -1,17 +1,28 @@
 // src/components/DonationModal.jsx
 import React, { useState } from "react";
+import Billing from "../utils/billing";
 
-export default function DonationModal({ open, slug, title, onClose }) {
+export default function DonationModal({ open, title, onClose }) {
   const [loading, setLoading] = useState(false);
-  const [amount, setAmount] = useState("5");
-
   if (!open) return null;
 
-  function handleDonate() {
-    setLoading(true);
-    alert(`Thanks for supporting with $${amount}! (Stripe donation coming soon)`);
-    setLoading(false);
-    onClose();
+  const donationOptions = [
+    { label: "$1.99", sku: "donation_small" },
+    { label: "$4.99", sku: "donation_medium" },
+    { label: "$9.99", sku: "donation_large" },
+  ];
+
+  async function handleDonate(sku) {
+    try {
+      setLoading(true);
+      await Billing.purchase(sku);
+      alert("Thank you for your support!");
+      onClose?.();
+    } catch (err) {
+      alert("Donation failed: " + err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -23,27 +34,25 @@ export default function DonationModal({ open, slug, title, onClose }) {
           Choose an amount to support the author.
         </p>
 
-        <input
-          type="number"
-          min="1"
-          className="w-full p-2 rounded bg-black/50 border border-white/20 mb-4"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
+        <div className="flex flex-col gap-3">
+          {donationOptions.map((opt) => (
+            <button
+              key={opt.sku}
+              disabled={loading}
+              onClick={() => handleDonate(opt.sku)}
+              className="w-full px-4 py-2 rounded-xl border border-yellow-400 text-yellow-200 hover:text-yellow-100 hover:border-yellow-300 transition text-center"
+            >
+              {loading ? "Processing…" : opt.label}
+            </button>
+          ))}
+        </div>
 
-        <div className="flex gap-3 justify-end">
+        <div className="flex gap-3 justify-end mt-6">
           <button
             onClick={onClose}
             className="px-4 py-2 rounded-xl border border-white/20"
           >
-            Cancel
-          </button>
-          <button
-            onClick={handleDonate}
-            disabled={loading}
-            className="px-4 py-2 rounded-xl border border-yellow-400 text-yellow-200 hover:text-yellow-100 hover:border-yellow-300 transition"
-          >
-            {loading ? "Processing…" : "Donate"}
+            Close
           </button>
         </div>
       </div>

@@ -61,7 +61,7 @@ export default function ReaderSunshine({
       />
 
       <div className="relative z-10 max-w-6xl mx-auto pt-20 px-4 pb-24 grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* LEFT PANEL — NO GESTURES HERE */}
+        {/* LEFT PANEL */}
         <aside className="lg:col-span-2">
           <div className="lg:sticky lg:top-24">
             <div className="text-center mt-4">
@@ -85,10 +85,10 @@ export default function ReaderSunshine({
               <button
                 onClick={() => setShowDonate(true)}
                 className="mt-5 w-full px-4 py-2.5 rounded-lg border text-[0.95rem]
-                           border-yellow-300/70 text-yellow-200 bg-black/40 backdrop-blur
-                           shadow-[0_0_18px_rgba(245,200,80,0.18)]
-                           hover:border-yellow-200 hover:text-yellow-100
-                           transition"
+                  border-yellow-300/70 text-yellow-200 bg-black/40 backdrop-blur
+                  shadow-[0_0_18px_rgba(245,200,80,0.18)]
+                  hover:border-yellow-200 hover:text-yellow-100
+                  transition"
                 style={{
                   textShadow: "0 0 8px rgba(245,200,80,0.35)",
                   boxShadow: "0 0 20px rgba(245,200,80,0.15) inset, 0 0 24px rgba(245,200,80,0.12)",
@@ -100,7 +100,7 @@ export default function ReaderSunshine({
           </div>
         </aside>
 
-        {/* RIGHT PANEL — ✅ GESTURES ONLY HERE */}
+        {/* RIGHT PANEL */}
         <main
           className="lg:col-span-3"
           ref={containerRef}
@@ -141,7 +141,6 @@ export default function ReaderSunshine({
       {/* Donation modal */}
       <DonationModal
         open={showDonate}
-        slug="sunshine-punk"
         title="Support the Author — Sunshine Punk"
         onClose={() => setShowDonate(false)}
       />
