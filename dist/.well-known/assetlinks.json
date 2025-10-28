@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.vercel.my_world_nexus_cdta.twa",
+      "sha256_cert_fingerprints": [
+        "64:B9:91:2D:4F:FF:9A:7E:B6:66:50:E7:AA:DB:0B:D1:00:0D:2F:28:C6:B4:6A:E4:7F:7B:01:73:1B:91:59:87"
+      ]
+    }
+  }
+]
