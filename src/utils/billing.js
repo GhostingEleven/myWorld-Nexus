@@ -1,67 +1,90 @@
 // src/utils/billing.js
 import { unlockBySku } from "./unlock";
 
-const PLAY_METHOD = "https://play.google.com/billing";
-let dgService = null; // Digital Goods service instance (Play)
+const PLAY_BILLING_URL = "https://play.google.com/billing";
+const PRODUCT_IDS = ["dreamland_unlock"]; // Add more SKUs here if needed
 
+let dgService = null;
+
+/**
+ * Get or initialize the Play Billing Digital Goods service.
+ */
 async function getService() {
   if (dgService) return dgService;
-  if (!("digitalGoods" in navigator) || !navigator.digitalGoods?.getService) {
-    throw new Error("Play Billing not available in this environment.");
+
+  // Check API support
+  if (typeof window.getDigitalGoodsService !== "function") {
+    throw new Error("Play Billing not available in this environment");
   }
-  dgService = await navigator.digitalGoods.getService("play");
+
+  const service = await window.getDigitalGoodsService(PLAY_BILLING_URL);
+  if (!service) {
+    throw new Error("Play Billing not available in this environment");
+  }
+
+  dgService = service;
   return dgService;
 }
 
-// Optional: fetch SKU details (price/description) if you want to display live prices.
-export async function getSkuDetails(productIds = []) {
-  const service = await getService();
-  // Some implementations expose listDetails / getDetailsForItems; fall back if needed.
-  if (!service.listDetails) return [];
-  return service.listDetails(productIds);
-}
-
-// Purchase a product by SKU (one-time IAP).
-export async function purchase(sku) {
-  const service = await getService();
-
-  // 1) Ask Play for the product details (verifies SKU exists)
-  if (service.getDetails) {
-    await service.getDetails([sku]); // not all UA’s expose listDetails; this is a no-op if unsupported
+/**
+ * Fetch details (price, title) for your SKUs if needed.
+ */
+export async function getSkuDetails(productIds = PRODUCT_IDS) {
+  try {
+    const service = await getService();
+    if (service.getDetails) {
+      return await service.getDetails(productIds);
+    }
+    return [];
+  } catch (err) {
+    console.warn("getSkuDetails failed:", err);
+    return [];
   }
-
-  // 2) Launch Payment Request with Play Billing as the method
-  const methodData = [{
-    supportedMethods: PLAY_METHOD,
-    data: { sku } // minimal contract for Play via Payment Request
-  }];
-
-  const details = { total: { label: "Total", amount: { currency: "AUD", value: "0" } } };
-  // Note: Play UI shows the actual price; this "0" is ignored for Play purchases.
-
-  const pr = new PaymentRequest(methodData, details);
-  const resp = await pr.show(); // Shows Google Play purchase sheet
-
-  // If user completes, Play returns a token in response.details
-  // Some UA’s auto-complete; still call complete() for spec compliance
-  await resp.complete("success");
-
-  // 3) After success, refresh owned items and unlock content if needed
-  await restore(); // will call unlockBySku for relevant SKUs
 }
 
-// Query owned purchases and unlock entitlements locally
+/**
+ * Launch purchase flow for a specific SKU.
+ */
+export async function purchase(sku = "dreamland_unlock") {
+  try {
+    const service = await getService();
+
+    // Fetch SKU details
+    const [product] = await service.getDetails([sku]);
+    if (!product) throw new Error("Product not found: " + sku);
+
+    // Launch purchase flow
+    const token = await service.purchase(product);
+    console.log("Purchase success:", token);
+
+    // Restore owned items to unlock content
+    await restore();
+    return token;
+  } catch (err) {
+    console.error("Purchase failed:", err);
+    throw err;
+  }
+}
+
+/**
+ * Restore owned purchases and unlock entitlements.
+ */
 export async function restore() {
-  const service = await getService();
-  if (!service.listPurchases) return;
+  try {
+    const service = await getService();
+    const purchases = await service.listPurchases();
+    console.log("Restored purchases:", purchases);
 
-  const purchases = await service.listPurchases(); // [{itemId, purchaseToken, ...}]
-  for (const p of purchases || []) {
-    // Donations don’t unlock content, Dreamland does:
-    unlockBySku(p.itemId);
+    for (const p of purchases || []) {
+      unlockBySku(p.itemId);
+    }
+  } catch (err) {
+    console.warn("Restore failed or not supported:", err);
   }
 }
 
-// Lightweight default export used by your components
+/**
+ * Lightweight default export
+ */
 const Billing = { purchase, restore, getSkuDetails };
 export default Billing;
