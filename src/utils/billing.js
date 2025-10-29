@@ -2,13 +2,11 @@
 import { unlockBySku } from "./unlock";
 
 const PLAY_BILLING_URL = "https://play.google.com/billing";
-
-// ✅ Match exactly what’s in Play Console
-const PRODUCT_IDS = ["unlock_dreamland", "donate_support"];
+const PRODUCT_IDS = ["unlock_dreamland", "donate_support"]; // Your actual SKUs
 let dgService = null;
 
 /**
- * Get or initialize the Play Billing Digital Goods service.
+ * Initialize or get the Play Billing Digital Goods service
  */
 async function getService() {
   if (dgService) return dgService;
@@ -27,7 +25,7 @@ async function getService() {
 }
 
 /**
- * Fetch product details (title, price) for the SKUs defined above.
+ * Fetch details for your SKUs (price, title, etc.)
  */
 export async function getSkuDetails(productIds = PRODUCT_IDS) {
   try {
@@ -43,23 +41,23 @@ export async function getSkuDetails(productIds = PRODUCT_IDS) {
 }
 
 /**
- * Launch purchase flow for a specific SKU.
+ * Launch purchase flow for a specific SKU
  */
 export async function purchase(sku = "unlock_dreamland") {
   try {
     const service = await getService();
 
-    // Fetch details for the selected product
+    // Fetch product details first
     const [product] = await service.getDetails([sku]);
     if (!product) throw new Error("Product not found: " + sku);
 
-    // ✅ Correct usage: purchase by itemId or sku string
-    const token = await service.purchase(product.itemId || sku);
+    // ✅ FIX: Call purchase() directly on service, passing SKU string
+    const token = await service.purchase(sku);
     console.log("✅ Purchase success:", token);
 
-    // Show visual confirmation for testers
+    // Visual feedback
     const msg = document.createElement("div");
-    msg.textContent = `✅ Purchase successful: ${sku}`;
+    msg.textContent = "✅ Dreamland unlocked!";
     msg.style.position = "fixed";
     msg.style.bottom = "20px";
     msg.style.left = "20px";
@@ -81,7 +79,7 @@ export async function purchase(sku = "unlock_dreamland") {
 }
 
 /**
- * Restore owned purchases and unlock entitlements.
+ * Restore owned purchases and unlock entitlements
  */
 export async function restore() {
   try {
@@ -98,7 +96,7 @@ export async function restore() {
 }
 
 /**
- * 🔍 Diagnostic overlay — shows billing status on-screen and console.
+ * Diagnostic overlay — logs status & displays on screen
  */
 export async function diagBilling() {
   const output = [];
@@ -111,7 +109,6 @@ export async function diagBilling() {
       const service = await window.getDigitalGoodsService(PLAY_BILLING_URL);
       if (service) {
         output.push("✅ Digital Goods service found!");
-
         if (service.listPurchases) {
           const purchases = await service.listPurchases();
           output.push(`🔹 listPurchases OK: ${purchases.length} items`);
@@ -133,7 +130,6 @@ export async function diagBilling() {
     output.push("❌ Exception: " + err.message);
   }
 
-  // 🧩 On-screen diagnostics
   const diagBox = document.createElement("pre");
   diagBox.textContent = output.join("\n");
   diagBox.style.position = "fixed";
