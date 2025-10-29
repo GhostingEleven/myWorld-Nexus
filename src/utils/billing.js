@@ -2,7 +2,9 @@
 import { unlockBySku } from "./unlock";
 
 const PLAY_BILLING_URL = "https://play.google.com/billing";
-const PRODUCT_IDS = ["dreamland_unlock"]; // Add more SKUs here if needed
+
+// ✅ Match exactly what’s in Play Console
+const PRODUCT_IDS = ["unlock_dreamland", "donate_support"];
 let dgService = null;
 
 /**
@@ -25,7 +27,7 @@ async function getService() {
 }
 
 /**
- * Fetch details (price, title) for your SKUs if needed.
+ * Fetch product details (title, price) for the SKUs defined above.
  */
 export async function getSkuDetails(productIds = PRODUCT_IDS) {
   try {
@@ -43,21 +45,21 @@ export async function getSkuDetails(productIds = PRODUCT_IDS) {
 /**
  * Launch purchase flow for a specific SKU.
  */
-export async function purchase(sku = "dreamland_unlock") {
+export async function purchase(sku = "unlock_dreamland") {
   try {
     const service = await getService();
 
-    // Fetch product details
+    // Fetch details for the selected product
     const [product] = await service.getDetails([sku]);
     if (!product) throw new Error("Product not found: " + sku);
 
-    // ✅ FIXED: Use product.itemId or sku, not the product object itself
+    // ✅ Correct usage: purchase by itemId or sku string
     const token = await service.purchase(product.itemId || sku);
     console.log("✅ Purchase success:", token);
 
-    // Visual confirmation for testers
+    // Show visual confirmation for testers
     const msg = document.createElement("div");
-    msg.textContent = "✅ Dreamland unlocked!";
+    msg.textContent = `✅ Purchase successful: ${sku}`;
     msg.style.position = "fixed";
     msg.style.bottom = "20px";
     msg.style.left = "20px";
@@ -96,7 +98,7 @@ export async function restore() {
 }
 
 /**
- * 🔍 Diagnostic function — shows on-screen + logs to console
+ * 🔍 Diagnostic overlay — shows billing status on-screen and console.
  */
 export async function diagBilling() {
   const output = [];
@@ -109,6 +111,7 @@ export async function diagBilling() {
       const service = await window.getDigitalGoodsService(PLAY_BILLING_URL);
       if (service) {
         output.push("✅ Digital Goods service found!");
+
         if (service.listPurchases) {
           const purchases = await service.listPurchases();
           output.push(`🔹 listPurchases OK: ${purchases.length} items`);
@@ -130,7 +133,7 @@ export async function diagBilling() {
     output.push("❌ Exception: " + err.message);
   }
 
-  // 🧩 Display diagnostic results on screen
+  // 🧩 On-screen diagnostics
   const diagBox = document.createElement("pre");
   diagBox.textContent = output.join("\n");
   diagBox.style.position = "fixed";
