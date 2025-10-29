@@ -8,16 +8,19 @@ import Library from "./pages/Library.jsx";
 import WorkDetail from "./pages/WorkDetail.jsx";
 import ReaderRouter from "./pages/ReaderRouter.jsx";
 
-import Billing, { diagBilling } from "./utils/billing"; // ✅ combined import
+// ✅ Only import once — default + named diagBilling
+import Billing, { diagBilling } from "./utils/billing";
 
 export default function App() {
   // ✅ Restore purchases and run diagnostics on app launch
   useEffect(() => {
+    // Try to restore purchases silently
     Billing.restore().catch(() => {
-      // Ignore errors when running in desktop browser or dev
+      // Ignore errors in non-Play contexts (browser/dev)
     });
 
-    diagBilling(); // 🧩 added diagnostic call
+    // Run diagnostics overlay
+    diagBilling();
   }, []);
 
   return (
@@ -31,10 +34,6 @@ export default function App() {
           <Route path="/library" element={<Library />} />
           <Route path="/work/:slug" element={<WorkDetail />} />
           <Route path="/read/:slug" element={<ReaderRouter />} />
-
-          {/* ❌ Stripe routes removed */}
-          {/* <Route path="/success" element={<Success />} /> */}
-          {/* <Route path="/cancel" element={<Cancel />} /> */}
         </Routes>
       </main>
     </div>
