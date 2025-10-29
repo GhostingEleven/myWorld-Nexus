@@ -3,7 +3,6 @@ import { unlockBySku } from "./unlock";
 
 const PLAY_BILLING_URL = "https://play.google.com/billing";
 const PRODUCT_IDS = ["dreamland_unlock"]; // Add more SKUs here if needed
-
 let dgService = null;
 
 /**
@@ -55,13 +54,13 @@ export async function purchase(sku = "dreamland_unlock") {
 
     // Launch purchase flow
     const token = await service.purchase(product);
-    console.log("Purchase success:", token);
+    console.log("✅ Purchase success:", token);
 
     // Restore owned items to unlock content
     await restore();
     return token;
   } catch (err) {
-    console.error("Purchase failed:", err);
+    console.error("❌ Purchase failed:", err);
     throw err;
   }
 }
@@ -73,7 +72,7 @@ export async function restore() {
   try {
     const service = await getService();
     const purchases = await service.listPurchases();
-    console.log("Restored purchases:", purchases);
+    console.log("🧾 Restored purchases:", purchases);
 
     for (const p of purchases || []) {
       unlockBySku(p.itemId);
@@ -84,7 +83,48 @@ export async function restore() {
 }
 
 /**
- * Lightweight default export
+ * 🔍 Diagnostic function — safe to run anytime.
+ * Checks whether the Play Billing service is available,
+ * verifies SKU visibility, and prints details to the console.
  */
-const Billing = { purchase, restore, getSkuDetails };
+export async function diagBilling() {
+  console.log("🧩 Billing Diagnostics starting...");
+
+  try {
+    if (typeof window.getDigitalGoodsService !== "function") {
+      console.error("❌ window.getDigitalGoodsService not found — not a Play TWA or assetlinks.json misconfigured.");
+      return;
+    }
+
+    const service = await window.getDigitalGoodsService(PLAY_BILLING_URL);
+    if (!service) {
+      console.error("❌ Digital Goods service unavailable — possible assetlinks mismatch or billing not enabled in twa-manifest.json.");
+      return;
+    }
+
+    console.log("✅ Digital Goods service found!");
+
+    const details = await service.getDetails(PRODUCT_IDS).catch(() => []);
+    if (details && details.length > 0) {
+      console.log("✅ SKU details fetched:", details);
+    } else {
+      console.warn("⚠️ No SKU details found — check Play Console (In-app products should be ACTIVE).");
+    }
+
+    if (service.listPurchases) {
+      const purchases = await service.listPurchases();
+      console.log("🧾 Purchases:", purchases);
+    }
+
+  } catch (err) {
+    console.error("💥 Billing Diagnostic Error:", err);
+  }
+
+  console.log("🧩 Billing Diagnostics complete.");
+}
+
+/**
+ * Default export
+ */
+const Billing = { purchase, restore, getSkuDetails, diagBilling };
 export default Billing;
