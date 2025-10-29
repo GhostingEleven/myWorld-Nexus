@@ -8,26 +8,22 @@ import Library from "./pages/Library.jsx";
 import WorkDetail from "./pages/WorkDetail.jsx";
 import ReaderRouter from "./pages/ReaderRouter.jsx";
 
-// ✅ Only import once — default + named diagBilling
+// ✅ Default export + named diagBilling (single import)
 import Billing, { diagBilling } from "./utils/billing";
 
 export default function App() {
-  // ✅ Restore purchases and run diagnostics on app launch
+  // ✅ Restore purchases and show billing diagnostics on launch
   useEffect(() => {
-    // Try to restore purchases silently
     Billing.restore().catch(() => {
-      // Ignore errors in non-Play contexts (browser/dev)
+      // Ignore errors when not in Play (desktop browser/dev)
     });
-
-    // Run diagnostics overlay
-    diagBilling();
+    diagBilling(); // shows green overlay so we can verify billing wiring
   }, []);
 
   return (
     <div className="relative min-h-screen bg-black">
       <Starfield />
       <NavBar />
-
       <main className="relative z-10 pt-20">
         <Routes>
           <Route path="/" element={<Entry />} />
