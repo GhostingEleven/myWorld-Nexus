@@ -17,7 +17,7 @@ export default function App() {
     Billing.restore().catch(() => {
       // Ignore errors when not in Play (desktop browser/dev)
     });
-    diagBilling(); // shows green overlay so we can verify billing wiring
+     
   }, []);
 
   return (

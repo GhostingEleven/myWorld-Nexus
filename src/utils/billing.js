@@ -51,22 +51,24 @@ export async function purchase(sku = "unlock_dreamland") {
     const [product] = await service.getDetails([sku]);
     if (!product) throw new Error("Product not found: " + sku);
 
-    // ✅ FIX: Call purchase() directly on service, passing SKU string
+    // ✅ Call purchase() using the SKU string
     const token = await service.purchase(sku);
     console.log("✅ Purchase success:", token);
 
-    // Visual feedback
+    // Visual feedback (temporary popup)
     const msg = document.createElement("div");
     msg.textContent = "✅ Dreamland unlocked!";
-    msg.style.position = "fixed";
-    msg.style.bottom = "20px";
-    msg.style.left = "20px";
-    msg.style.background = "#0f0";
-    msg.style.color = "#000";
-    msg.style.padding = "10px 15px";
-    msg.style.borderRadius = "10px";
-    msg.style.fontWeight = "bold";
-    msg.style.zIndex = "10000";
+    Object.assign(msg.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "20px",
+      background: "#0f0",
+      color: "#000",
+      padding: "10px 15px",
+      borderRadius: "10px",
+      fontWeight: "bold",
+      zIndex: "10000",
+    });
     document.body.appendChild(msg);
     setTimeout(() => msg.remove(), 3000);
 
@@ -96,60 +98,7 @@ export async function restore() {
 }
 
 /**
- * Diagnostic overlay — logs status & displays on screen
- */
-export async function diagBilling() {
-  const output = [];
-  try {
-    output.push("🧩 diagBilling start...");
-
-    if (typeof window.getDigitalGoodsService !== "function") {
-      output.push("❌ window.getDigitalGoodsService not found.");
-    } else {
-      const service = await window.getDigitalGoodsService(PLAY_BILLING_URL);
-      if (service) {
-        output.push("✅ Digital Goods service found!");
-        if (service.listPurchases) {
-          const purchases = await service.listPurchases();
-          output.push(`🔹 listPurchases OK: ${purchases.length} items`);
-        } else {
-          output.push("⚠️ listPurchases() not supported.");
-        }
-
-        if (service.getDetails) {
-          const details = await service.getDetails(PRODUCT_IDS);
-          output.push(`🔹 getDetails() result: ${JSON.stringify(details)}`);
-        } else {
-          output.push("⚠️ getDetails() not supported.");
-        }
-      } else {
-        output.push("❌ getDigitalGoodsService returned null.");
-      }
-    }
-  } catch (err) {
-    output.push("❌ Exception: " + err.message);
-  }
-
-  const diagBox = document.createElement("pre");
-  diagBox.textContent = output.join("\n");
-  diagBox.style.position = "fixed";
-  diagBox.style.bottom = "10px";
-  diagBox.style.left = "10px";
-  diagBox.style.background = "rgba(0,0,0,0.8)";
-  diagBox.style.color = "lime";
-  diagBox.style.fontSize = "12px";
-  diagBox.style.padding = "10px";
-  diagBox.style.border = "1px solid lime";
-  diagBox.style.zIndex = "9999";
-  diagBox.style.maxWidth = "90vw";
-  diagBox.style.whiteSpace = "pre-wrap";
-  document.body.appendChild(diagBox);
-
-  console.log(output.join("\n"));
-}
-
-/**
  * Default export
  */
-const Billing = { purchase, restore, getSkuDetails, diagBilling };
+const Billing = { purchase, restore, getSkuDetails };
 export default Billing;
