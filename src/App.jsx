@@ -8,14 +8,16 @@ import Library from "./pages/Library.jsx";
 import WorkDetail from "./pages/WorkDetail.jsx";
 import ReaderRouter from "./pages/ReaderRouter.jsx";
 
-import Billing from "./utils/billing"; // ✅ auto-restore
+import Billing, { diagBilling } from "./utils/billing"; // ✅ combined import
 
 export default function App() {
-  // ✅ Restore purchases on app launch (Google requires this)
+  // ✅ Restore purchases and run diagnostics on app launch
   useEffect(() => {
     Billing.restore().catch(() => {
       // Ignore errors when running in desktop browser or dev
     });
+
+    diagBilling(); // 🧩 added diagnostic call
   }, []);
 
   return (
