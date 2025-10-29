@@ -46,11 +46,29 @@ export async function getSkuDetails(productIds = PRODUCT_IDS) {
 export async function purchase(sku = "dreamland_unlock") {
   try {
     const service = await getService();
+
+    // Fetch product details
     const [product] = await service.getDetails([sku]);
     if (!product) throw new Error("Product not found: " + sku);
 
-    const token = await service.purchase(product);
+    // ✅ FIXED: Use product.itemId or sku, not the product object itself
+    const token = await service.purchase(product.itemId || sku);
     console.log("✅ Purchase success:", token);
+
+    // Visual confirmation for testers
+    const msg = document.createElement("div");
+    msg.textContent = "✅ Dreamland unlocked!";
+    msg.style.position = "fixed";
+    msg.style.bottom = "20px";
+    msg.style.left = "20px";
+    msg.style.background = "#0f0";
+    msg.style.color = "#000";
+    msg.style.padding = "10px 15px";
+    msg.style.borderRadius = "10px";
+    msg.style.fontWeight = "bold";
+    msg.style.zIndex = "10000";
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 3000);
 
     await restore();
     return token;
