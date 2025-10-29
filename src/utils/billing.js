@@ -11,7 +11,6 @@ let dgService = null;
 async function getService() {
   if (dgService) return dgService;
 
-  // Check API support
   if (typeof window.getDigitalGoodsService !== "function") {
     throw new Error("Play Billing not available in this environment");
   }
@@ -47,16 +46,12 @@ export async function getSkuDetails(productIds = PRODUCT_IDS) {
 export async function purchase(sku = "dreamland_unlock") {
   try {
     const service = await getService();
-
-    // Fetch SKU details
     const [product] = await service.getDetails([sku]);
     if (!product) throw new Error("Product not found: " + sku);
 
-    // Launch purchase flow
     const token = await service.purchase(product);
     console.log("✅ Purchase success:", token);
 
-    // Restore owned items to unlock content
     await restore();
     return token;
   } catch (err) {
@@ -83,44 +78,57 @@ export async function restore() {
 }
 
 /**
- * 🔍 Diagnostic function — safe to run anytime.
- * Checks whether the Play Billing service is available,
- * verifies SKU visibility, and prints details to the console.
+ * 🔍 Diagnostic function — shows on-screen + logs to console
  */
 export async function diagBilling() {
-  console.log("🧩 Billing Diagnostics starting...");
-
+  const output = [];
   try {
+    output.push("🧩 diagBilling start...");
+
     if (typeof window.getDigitalGoodsService !== "function") {
-      console.error("❌ window.getDigitalGoodsService not found — not a Play TWA or assetlinks.json misconfigured.");
-      return;
-    }
-
-    const service = await window.getDigitalGoodsService(PLAY_BILLING_URL);
-    if (!service) {
-      console.error("❌ Digital Goods service unavailable — possible assetlinks mismatch or billing not enabled in twa-manifest.json.");
-      return;
-    }
-
-    console.log("✅ Digital Goods service found!");
-
-    const details = await service.getDetails(PRODUCT_IDS).catch(() => []);
-    if (details && details.length > 0) {
-      console.log("✅ SKU details fetched:", details);
+      output.push("❌ window.getDigitalGoodsService not found.");
     } else {
-      console.warn("⚠️ No SKU details found — check Play Console (In-app products should be ACTIVE).");
-    }
+      const service = await window.getDigitalGoodsService(PLAY_BILLING_URL);
+      if (service) {
+        output.push("✅ Digital Goods service found!");
+        if (service.listPurchases) {
+          const purchases = await service.listPurchases();
+          output.push(`🔹 listPurchases OK: ${purchases.length} items`);
+        } else {
+          output.push("⚠️ listPurchases() not supported.");
+        }
 
-    if (service.listPurchases) {
-      const purchases = await service.listPurchases();
-      console.log("🧾 Purchases:", purchases);
+        if (service.getDetails) {
+          const details = await service.getDetails(PRODUCT_IDS);
+          output.push(`🔹 getDetails() result: ${JSON.stringify(details)}`);
+        } else {
+          output.push("⚠️ getDetails() not supported.");
+        }
+      } else {
+        output.push("❌ getDigitalGoodsService returned null.");
+      }
     }
-
   } catch (err) {
-    console.error("💥 Billing Diagnostic Error:", err);
+    output.push("❌ Exception: " + err.message);
   }
 
-  console.log("🧩 Billing Diagnostics complete.");
+  // 🧩 Display diagnostic results on screen
+  const diagBox = document.createElement("pre");
+  diagBox.textContent = output.join("\n");
+  diagBox.style.position = "fixed";
+  diagBox.style.bottom = "10px";
+  diagBox.style.left = "10px";
+  diagBox.style.background = "rgba(0,0,0,0.8)";
+  diagBox.style.color = "lime";
+  diagBox.style.fontSize = "12px";
+  diagBox.style.padding = "10px";
+  diagBox.style.border = "1px solid lime";
+  diagBox.style.zIndex = "9999";
+  diagBox.style.maxWidth = "90vw";
+  diagBox.style.whiteSpace = "pre-wrap";
+  document.body.appendChild(diagBox);
+
+  console.log(output.join("\n"));
 }
 
 /**
