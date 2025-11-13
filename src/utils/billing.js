@@ -2,31 +2,35 @@
 import { unlockBySku } from "./unlock";
 
 const PLAY_BILLING_URL = "https://play.google.com/billing";
+const PACKAGE_NAME = "app.vercel.my_world_nexus_cdta.twa";
+
 const PRODUCT_IDS = ["unlock_dreamland", "donate_support"];
 
 let dgService = null;
 
+
+// 🔵 Ensure Digital Goods service is loaded
 async function getService() {
   if (dgService) return dgService;
 
   if (typeof window.getDigitalGoodsService !== "function") {
-    throw new Error("Play Billing not available in this environment");
+    throw new Error("Digital Goods API not available");
   }
 
   const service = await window.getDigitalGoodsService(PLAY_BILLING_URL);
-  if (!service) throw new Error("Play Billing not available in this environment");
+  if (!service) throw new Error("Digital Goods API returned null");
 
   dgService = service;
   return dgService;
 }
 
+
+// 🔵 Pull SKU details
 async function getSkuDetails(productIds = PRODUCT_IDS) {
   try {
     const service = await getService();
     const details = await service.getDetails(productIds);
-
     console.log("📦 SKU details:", details);
-
     return details || [];
   } catch (err) {
     console.warn("getSkuDetails failed:", err);
@@ -34,35 +38,28 @@ async function getSkuDetails(productIds = PRODUCT_IDS) {
   }
 }
 
+
+// 🔵 MAIN PURCHASE FUNCTION
 async function purchase(sku = "unlock_dreamland") {
   try {
     const service = await getService();
 
-    // 1️⃣ NEW 2024+ API
-    if (service.payments?.purchase) {
-      console.log("⚡ Using NEW Payments API");
-      const result = await service.payments.purchase({ itemId: sku });
-      await restore();
-      return result;
-    }
-
-    // 2️⃣ OLD DigitalGoods API
+    // 1️⃣ Standard Digital Goods purchase — this is the real API
     if (typeof service.purchase === "function") {
-      console.log("⚡ Using OLD DigitalGoods API");
+      console.log("⚡ Using service.purchase");
       const result = await service.purchase(sku);
-      await restore();
+      await restore(); 
       return result;
     }
 
-    // 3️⃣ UNIVERSAL PLAY STORE FALLBACK (Triggers real purchase UI)
-    console.log("⚡ Falling back to Play Store billing redirect");
+    // 2️⃣ Fallback: correct Play Store redirect (opens the product directly)
+    console.log("⚡ Using fallback Play redirect");
 
     const redirectUrl =
-      `android-app://com.android.vending/billing?sku=${sku}&package=${PACKAGE_NAME}`;
+      `https://play.google.com/store/paymentmethods?sku=${sku}&package=${PACKAGE_NAME}`;
 
     window.location.href = redirectUrl;
-
-    throw new Error("Redirected to Google Play billing redirect");
+    throw new Error("Redirecting to Google Play");
 
   } catch (err) {
     console.error("❌ Purchase failed:", err);
@@ -71,7 +68,7 @@ async function purchase(sku = "unlock_dreamland") {
 }
 
 
-
+// 🔵 Restore purchased items
 async function restore() {
   try {
     const service = await getService();
@@ -80,12 +77,13 @@ async function restore() {
     console.log("🧾 Restored purchases:", purchases);
 
     for (const p of purchases || []) {
-      unlockBySku(p.itemId);
+      if (p.itemId) unlockBySku(p.itemId);
     }
   } catch (err) {
-    console.warn("Restore failed or not supported:", err);
+    console.warn("Restore failed:", err);
   }
 }
+
 
 export default {
   purchase,
