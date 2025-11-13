@@ -38,10 +38,16 @@ async function purchase(sku = "unlock_dreamland") {
   try {
     const service = await getService();
 
-    // CORRECT: DigitalGoods purchase takes a string SKU
-    const purchaseToken = await service.purchase(sku);
+    // NEW API: purchase is under service.payments
+    if (!service.payments || typeof service.payments.purchase !== "function") {
+      throw new Error("Play Billing purchase API not available");
+    }
 
-    console.log("✅ Purchase success:", purchaseToken);
+    const purchaseResult = await service.payments.purchase({
+      itemId: sku,
+    });
+
+    console.log("✅ Purchase success:", purchaseResult);
 
     // Quick popup
     const msg = document.createElement("div");
@@ -61,7 +67,7 @@ async function purchase(sku = "unlock_dreamland") {
     setTimeout(() => msg.remove(), 3000);
 
     await restore();
-    return purchaseToken;
+    return purchaseResult;
   } catch (err) {
     console.error("❌ Purchase failed:", err);
     throw err;
