@@ -38,33 +38,39 @@ async function purchase(sku = "unlock_dreamland") {
   try {
     const service = await getService();
 
-    // 1️⃣ NEW API (2024+)
-    if (service.payments && typeof service.payments.purchase === "function") {
+    // 1️⃣ NEW Payments API
+    if (service.payments?.purchase) {
       console.log("⚡ Using NEW Payments API");
-      const purchaseResult = await service.payments.purchase({
-        itemId: sku,
-      });
-      console.log("✅ Purchase success (new API):", purchaseResult);
+      const result = await service.payments.purchase({ itemId: sku });
       await restore();
-      return purchaseResult;
+      return result;
     }
 
-    // 2️⃣ OLD API (pre-2024)
+    // 2️⃣ OLD DigitalGoods API
     if (typeof service.purchase === "function") {
       console.log("⚡ Using OLD DigitalGoods API");
-      const purchaseResult = await service.purchase(sku);
-      console.log("✅ Purchase success (old API):", purchaseResult);
+      const result = await service.purchase(sku);
       await restore();
-      return purchaseResult;
+      return result;
     }
 
-    throw new Error("No compatible Play Billing purchase API found");
+    // 3️⃣ UNIVERSAL FALLBACK (OPPO / Xiaomi / Vivo SAFE)
+    console.log("⚡ Falling back to Play Store purchase flow");
+
+    const packageName = "com.myworld.android"; // change if needed
+
+    const playUrl = `https://play.google.com/store/paymentmethods?sku=${sku}&package=${packageName}`;
+
+    window.location.href = playUrl;
+
+    throw new Error("Redirected to Google Play payment flow");
 
   } catch (err) {
     console.error("❌ Purchase failed:", err);
     throw err;
   }
 }
+
 
 
 async function restore() {
