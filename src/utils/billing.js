@@ -38,41 +38,34 @@ async function purchase(sku = "unlock_dreamland") {
   try {
     const service = await getService();
 
-    // NEW API: purchase is under service.payments
-    if (!service.payments || typeof service.payments.purchase !== "function") {
-      throw new Error("Play Billing purchase API not available");
+    // 1️⃣ NEW API (2024+)
+    if (service.payments && typeof service.payments.purchase === "function") {
+      console.log("⚡ Using NEW Payments API");
+      const purchaseResult = await service.payments.purchase({
+        itemId: sku,
+      });
+      console.log("✅ Purchase success (new API):", purchaseResult);
+      await restore();
+      return purchaseResult;
     }
 
-    const purchaseResult = await service.payments.purchase({
-      itemId: sku,
-    });
+    // 2️⃣ OLD API (pre-2024)
+    if (typeof service.purchase === "function") {
+      console.log("⚡ Using OLD DigitalGoods API");
+      const purchaseResult = await service.purchase(sku);
+      console.log("✅ Purchase success (old API):", purchaseResult);
+      await restore();
+      return purchaseResult;
+    }
 
-    console.log("✅ Purchase success:", purchaseResult);
+    throw new Error("No compatible Play Billing purchase API found");
 
-    // Quick popup
-    const msg = document.createElement("div");
-    msg.textContent = "✅ Dreamland unlocked!";
-    Object.assign(msg.style, {
-      position: "fixed",
-      bottom: "20px",
-      left: "20px",
-      background: "#0f0",
-      color: "#000",
-      padding: "10px 15px",
-      borderRadius: "10px",
-      fontWeight: "bold",
-      zIndex: 10000,
-    });
-    document.body.appendChild(msg);
-    setTimeout(() => msg.remove(), 3000);
-
-    await restore();
-    return purchaseResult;
   } catch (err) {
     console.error("❌ Purchase failed:", err);
     throw err;
   }
 }
+
 
 async function restore() {
   try {
