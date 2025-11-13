@@ -3,6 +3,7 @@ import { unlockBySku } from "./unlock";
 
 const PLAY_BILLING_URL = "https://play.google.com/billing";
 const PRODUCT_IDS = ["unlock_dreamland", "donate_support"];
+
 let dgService = null;
 
 async function getService() {
@@ -22,7 +23,11 @@ async function getService() {
 async function getSkuDetails(productIds = PRODUCT_IDS) {
   try {
     const service = await getService();
-    return (await service.getDetails(productIds)) || [];
+    const details = await service.getDetails(productIds);
+
+    console.log("📦 SKU details:", details);
+
+    return details || [];
   } catch (err) {
     console.warn("getSkuDetails failed:", err);
     return [];
@@ -33,12 +38,10 @@ async function purchase(sku = "unlock_dreamland") {
   try {
     const service = await getService();
 
-    const [product] = await service.getDetails([sku]);
-    if (!product) throw new Error("Product not found: " + sku);
+    // CORRECT: DigitalGoods purchase takes a string SKU
+    const purchaseToken = await service.purchase(sku);
 
-    // This must use the product.id (not raw SKU) for Play Billing 5.0+
-    const token = await service.purchase(product.id);
-    console.log("✅ Purchase success:", token);
+    console.log("✅ Purchase success:", purchaseToken);
 
     // Quick popup
     const msg = document.createElement("div");
@@ -52,13 +55,13 @@ async function purchase(sku = "unlock_dreamland") {
       padding: "10px 15px",
       borderRadius: "10px",
       fontWeight: "bold",
-      zIndex: "10000",
+      zIndex: 10000,
     });
     document.body.appendChild(msg);
     setTimeout(() => msg.remove(), 3000);
 
     await restore();
-    return token;
+    return purchaseToken;
   } catch (err) {
     console.error("❌ Purchase failed:", err);
     throw err;
@@ -69,12 +72,19 @@ async function restore() {
   try {
     const service = await getService();
     const purchases = await service.listPurchases();
+
     console.log("🧾 Restored purchases:", purchases);
 
-    for (const p of purchases || []) unlockBySku(p.itemId);
+    for (const p of purchases || []) {
+      unlockBySku(p.itemId);
+    }
   } catch (err) {
     console.warn("Restore failed or not supported:", err);
   }
 }
 
-export default { purchase, restore, getSkuDetails };
+export default {
+  purchase,
+  restore,
+  getSkuDetails
+};
