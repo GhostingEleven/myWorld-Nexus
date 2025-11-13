@@ -40,32 +40,74 @@ async function getSkuDetails(productIds = PRODUCT_IDS) {
 
 
 // 🔵 MAIN PURCHASE FUNCTION
+// 🔵 MAIN PURCHASE FUNCTION — using Payment Request API + Digital Goods
 async function purchase(sku = "unlock_dreamland") {
   try {
     const service = await getService();
 
-    // 1️⃣ Standard Digital Goods purchase — this is the real API
-    if (typeof service.purchase === "function") {
-      console.log("⚡ Using service.purchase");
-      const result = await service.purchase(sku);
-      await restore(); 
-      return result;
+    // Safety: if PaymentRequest API is not available, fall back to Play redirect
+    if (typeof window.PaymentRequest !== "function") {
+      console.warn("PaymentRequest API not available, using fallback redirect");
+
+      const redirectUrl =
+        `https://play.google.com/store/paymentmethods?sku=${sku}&package=${PACKAGE_NAME}`;
+
+      window.location.href = redirectUrl;
+      throw new Error("Redirecting to Google Play");
     }
 
-    // 2️⃣ Fallback: correct Play Store redirect (opens the product directly)
-    console.log("⚡ Using fallback Play redirect");
+    // Try to get details for this SKU (price, currency, title)
+    let item = null;
+    try {
+      const details = await service.getDetails([sku]);
+      if (details && details.length > 0) {
+        item = details[0];
+        console.log("🎯 Using SKU details for purchase:", item);
+      } else {
+        console.warn("No details returned for SKU:", sku);
+      }
+    } catch (e) {
+      console.warn("getDetails failed, continuing without details:", e);
+    }
 
-    const redirectUrl =
-      `https://play.google.com/store/paymentmethods?sku=${sku}&package=${PACKAGE_NAME}`;
+    // Build the supported payment method for Google Play Billing
+    const supportedInstruments = [{
+      supportedMethods: "https://play.google.com/billing",
+      data: { sku }
+    }];
 
-    window.location.href = redirectUrl;
-    throw new Error("Redirecting to Google Play");
+    // Payment details – Play ignores the amount and uses Play Console config,
+    // but these are required by PaymentRequest, so we fill them sensibly.
+    const paymentDetails = {
+      total: {
+        label: item?.title || "Total",
+        amount: {
+          currency: item?.price?.currency || "USD",
+          value: String(item?.price?.value || "0")
+        }
+      }
+    };
 
+    const request = new PaymentRequest(supportedInstruments, paymentDetails);
+
+    console.log("🧾 Showing PaymentRequest for SKU:", sku);
+    const response = await request.show();
+
+    // Mark UI complete; in a full backend integration you'd verify/ack first.
+    await response.complete("success");
+
+    console.log("✅ PaymentRequest completed:", response);
+
+    // Refresh local entitlements
+    await restore();
+
+    return response;
   } catch (err) {
     console.error("❌ Purchase failed:", err);
     throw err;
   }
 }
+
 
 
 // 🔵 Restore purchased items
