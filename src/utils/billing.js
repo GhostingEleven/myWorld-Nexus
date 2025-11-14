@@ -104,9 +104,18 @@ async function purchase(sku = "unlock_dreamland") {
     return response;
   } catch (err) {
     console.error("❌ Purchase failed:", err);
+
+    // Play Billing quirk: RESULT_CANCELED can mean the Play UI
+    // closed itself *after* completing the purchase.
+    if (err.message?.includes("RESULT_CANCELED")) {
+      console.warn("Treating RESULT_CANCELED as post-payment close event.");
+      await restore(); 
+      return { status: "completed_after_play_close" };
+    }
+
     throw err;
-  }
 }
+
 
 
 
