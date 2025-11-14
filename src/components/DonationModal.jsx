@@ -6,10 +6,11 @@ export default function DonationModal({ open, title, onClose }) {
   const [loading, setLoading] = useState(false);
   if (!open) return null;
 
+  // 🔵 Updated SKUs — MUST match Play Console exactly
   const donationOptions = [
-    { label: "$1.99", sku: "donation_small" },
-    { label: "$4.99", sku: "donation_medium" },
-    { label: "$9.99", sku: "donation_large" },
+    { label: "$1.99", sku: "donation_199" },
+    { label: "$4.99", sku: "donation_499" },
+    { label: "$9.99", sku: "donation_999" },
   ];
 
   async function handleDonate(sku) {
