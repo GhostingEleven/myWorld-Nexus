@@ -8,7 +8,6 @@ const PRODUCT_IDS = ["unlock_dreamland", "donate_support"];
 
 let dgService = null;
 
-
 // 🔵 Ensure Digital Goods service is loaded
 async function getService() {
   if (dgService) return dgService;
@@ -24,7 +23,6 @@ async function getService() {
   return dgService;
 }
 
-
 // 🔵 Pull SKU details
 async function getSkuDetails(productIds = PRODUCT_IDS) {
   try {
@@ -38,8 +36,6 @@ async function getSkuDetails(productIds = PRODUCT_IDS) {
   }
 }
 
-
-// 🔵 MAIN PURCHASE FUNCTION
 // 🔵 MAIN PURCHASE FUNCTION — using Payment Request API + Digital Goods
 async function purchase(sku = "unlock_dreamland") {
   try {
@@ -76,8 +72,6 @@ async function purchase(sku = "unlock_dreamland") {
       data: { sku }
     }];
 
-    // Payment details – Play ignores the amount and uses Play Console config,
-    // but these are required by PaymentRequest, so we fill them sensibly.
     const paymentDetails = {
       total: {
         label: item?.title || "Total",
@@ -93,15 +87,14 @@ async function purchase(sku = "unlock_dreamland") {
     console.log("🧾 Showing PaymentRequest for SKU:", sku);
     const response = await request.show();
 
-    // Mark UI complete; in a full backend integration you'd verify/ack first.
     await response.complete("success");
 
     console.log("✅ PaymentRequest completed:", response);
 
-    // Refresh local entitlements
     await restore();
 
     return response;
+
   } catch (err) {
     console.error("❌ Purchase failed:", err);
 
@@ -109,14 +102,13 @@ async function purchase(sku = "unlock_dreamland") {
     // closed itself *after* completing the purchase.
     if (err.message?.includes("RESULT_CANCELED")) {
       console.warn("Treating RESULT_CANCELED as post-payment close event.");
-      await restore(); 
+      await restore();
       return { status: "completed_after_play_close" };
     }
 
     throw err;
-}
-
-
+  }   // <-- correct closing brace for catch
+}     // <-- correct closing brace for purchase()
 
 
 // 🔵 Restore purchased items
@@ -134,7 +126,6 @@ async function restore() {
     console.warn("Restore failed:", err);
   }
 }
-
 
 export default {
   purchase,
