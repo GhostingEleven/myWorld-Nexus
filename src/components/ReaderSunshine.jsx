@@ -1,6 +1,6 @@
 // src/components/ReaderSunshine.jsx
 import React, { useMemo, useRef, useState, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import DonationModal from "./DonationModal.jsx";
 import useSwipe from "../hooks/useSwipe.js";
 import useEdgeTap from "../hooks/useEdgeTap.js";
@@ -8,40 +8,47 @@ import useEdgeTap from "../hooks/useEdgeTap.js";
 export default function ReaderSunshine({
   title = "SUNSHINE PUNK — ACT I",
   paragraphs = [],
-  bannerSrc = "/sunshine/act-1/banner.jpg",
+  page = 1,                    // URL parameter (1-based)
 }) {
   const navigate = useNavigate();
-  const { page } = useParams();               // 🌟 Get page number from URL
-  const initialIndex = Math.max(0, Number(page) - 1 || 0);
+
+  // Convert URL page → internal index (0-based)
+  const initialIndex = Math.max(0, Number(page) - 1);
 
   const [index, setIndex] = useState(initialIndex);
   const [showDonate, setShowDonate] = useState(false);
 
-  const lastIndex = Math.max(0, (paragraphs?.length ?? 1) - 1);
+  const lastIndex = Math.max(0, paragraphs.length - 1);
   const pageText = useMemo(() => paragraphs[index] || "", [paragraphs, index]);
   const parts = useMemo(() => (pageText ? pageText.split(/\n\s*\n/) : []), [pageText]);
 
-  // 🌟 Keep component state synced with URL (fixes refresh issue)
+  // ⭐ Sync index when URL changes
   useEffect(() => {
-    const urlIndex = Math.max(0, Number(page) - 1 || 0);
-    if (urlIndex !== index) setIndex(urlIndex);
+    const newIndex = Math.max(0, Number(page) - 1);
+    if (newIndex !== index) setIndex(newIndex);
   }, [page]);
 
-  // 🌟 ON PAGE CHANGE -> update the URL
-  function goTo(newIndex) {
-    setIndex(newIndex);
-    navigate(`/sunshine/${newIndex + 1}`);   // Keep URL in sync
+  // ⭐ Sync URL when navigating pages
+  function goTo(i) {
+    const safeIndex = Math.max(0, Math.min(lastIndex, i));
+    setIndex(safeIndex);
+    navigate(`/read/sunshine-punk/${safeIndex + 1}`);
   }
 
-  function next() { if (index < lastIndex) goTo(index + 1); }
-  function prev() { if (index > 0) goTo(index - 1); }
+  function next() { goTo(index + 1); }
+  function prev() { goTo(index - 1); }
 
-  // GESTURES — APPLY ONLY TO READER CONTENT
+  // ⭐ Gestures
   const containerRef = useRef(null);
   const swipeBind = useSwipe({ onLeft: next, onRight: prev });
   const tapBind = useEdgeTap({ onLeft: prev, onRight: next, edgePercent: 0.18 });
 
-  // COPY / SELECT / TOUCH-CALLOUT DISABLE
+  // ⭐ Scroll-to-top on page change
+  useEffect(() => {
+    containerRef.current?.scrollTo({ top: 0, behavior: "auto" });
+  }, [index]);
+
+  // ⭐ Copy-disable logic
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -61,11 +68,6 @@ export default function ReaderSunshine({
     };
   }, []);
 
-  // 🌟 SCROLL TO TOP ON PAGE CHANGE
-  useEffect(() => {
-    containerRef.current?.scrollTo({ top: 0, behavior: "auto" });
-  }, [index]);
-
   return (
     <section className="min-h-screen relative text-white">
       {/* Background */}
@@ -84,10 +86,10 @@ export default function ReaderSunshine({
           <div className="lg:sticky lg:top-24">
             <div className="text-center mt-4">
               <div className="text-[0.8rem] tracking-[0.25em] text-yellow-200/85">— ACT —</div>
-              <h1 className="mt-1 text-xl md:text-2xl tracking-[0.18em]" style={{ fontWeight: 500 }}>
+              <h1 className="mt-1 text-xl md:text-2xl tracking-[0.18em] font-medium">
                 SUNSHINE PUNK
               </h1>
-              <h2 className="text-sm md:text-base tracking-[0.35em] text-neutral-300" style={{ fontWeight: 400 }}>
+              <h2 className="text-sm md:text-base tracking-[0.35em] text-neutral-300 font-light">
                 ACT I
               </h2>
 
@@ -103,10 +105,10 @@ export default function ReaderSunshine({
               <button
                 onClick={() => setShowDonate(true)}
                 className="mt-5 w-full px-4 py-2.5 rounded-lg border text-[0.95rem]
-                  border-yellow-300/70 text-yellow-200 bg-black/40 backdrop-blur
-                  shadow-[0_0_18px_rgba(245,200,80,0.18)]
-                  hover:border-yellow-200 hover:text-yellow-100
-                  transition"
+                border-yellow-300/70 text-yellow-200 bg-black/40 backdrop-blur
+                shadow-[0_0_18px_rgba(245,200,80,0.18)]
+                hover:border-yellow-200 hover:text-yellow-100
+                transition"
                 style={{
                   textShadow: "0 0 8px rgba(245,200,80,0.35)",
                   boxShadow: "0 0 20px rgba(245,200,80,0.15) inset, 0 0 24px rgba(245,200,80,0.12)",
@@ -125,7 +127,6 @@ export default function ReaderSunshine({
           {...swipeBind}
           {...tapBind}
         >
-
           {paragraphs.length === 0 ? (
             <div className="glass p-4 rounded-xl text-neutral-300">
               Unable to load Sunshine Punk Act I. Ensure files exist in{" "}
@@ -137,6 +138,7 @@ export default function ReaderSunshine({
                 <p key={i} className="mb-4">{p}</p>
               ))}
 
+              {/* FOOTER */}
               <footer className="mt-8 flex items-center justify-between text-sm text-neutral-300">
                 <button onClick={prev} disabled={index === 0} className="hover:text-white disabled:opacity-30">
                   ◀ Previous
@@ -150,10 +152,7 @@ export default function ReaderSunshine({
               </footer>
 
               <div className="text-center mt-6">
-                <Link
-                  to="/library"
-                  className="text-sm text-neutral-400 hover:text-neutral-200 underline underline-offset-4"
-                >
+                <Link to="/library" className="text-sm text-neutral-400 hover:text-neutral-200 underline underline-offset-4">
                   Exit to Library
                 </Link>
               </div>
