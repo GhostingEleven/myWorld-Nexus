@@ -3,27 +3,32 @@ import React, { useEffect, useState } from "react";
 import { useParams, Navigate, useSearchParams } from "react-router-dom";
 import { works } from "../data/works.js";
 import { isUnlocked } from "../utils/unlock.js";
-import { loadAngeldownChapters } from "../utils/textLoader.js";
-import { loadDreamlandChapters } from "../utils/textLoaderDreamland.js";
-import { loadKryxStructure } from "../utils/kryxLoader.js";
-import { loadSunshineAct1 } from "../utils/sunshineLoader.js";
+
+import {
+  loadAngeldownChapters,
+  loadDreamlandChapters,
+  loadKryxStructure,
+  loadSunshineAct1,
+} from "../utils/loaders-index.js";
 
 import ReaderSciFi from "../components/ReaderSciFi.jsx";
 import ReaderDreamland from "../components/ReaderDreamland.jsx";
 import KryxReader from "../components/KryxReader.jsx";
 import ReaderSunshine from "../components/ReaderSunshine.jsx";
-import SketchyGallery from "../components/SketchyGallery.jsx"; // ✅ NEW
+import SketchyGallery from "../components/SketchyGallery.jsx";
 
 export default function ReaderRouter() {
-  const { slug } = useParams();
+  const { slug, page } = useParams();       // ⭐ NEW — accept page param
   const [search] = useSearchParams();
   const item = works.find((w) => w.slug === slug);
+
+  const pageNumber = Math.max(1, Number(page) || 1); // default to page 1
 
   const [titles, setTitles] = useState(null);
   const [chapters, setChapters] = useState(null);
   const [err, setErr] = useState(null);
 
-  // ✅ New: If this work isn't a reader (Sketchy NFTs), handle it immediately
+  // Non-reader: Sketchy NFTs
   if (slug === "sketchy-nfts") {
     return <SketchyGallery />;
   }
@@ -73,8 +78,10 @@ export default function ReaderRouter() {
     return () => { alive = false; };
   }, [slug, item]);
 
+  // Redirect if invalid work
   if (!item) return <Navigate to="/library" replace />;
 
+  // Dreamland paywall
   if (slug === "dreamland" && !isUnlocked("dreamland")) {
     return <Navigate to={`/work/${slug}`} replace />;
   }
@@ -100,6 +107,8 @@ export default function ReaderRouter() {
 
   const preview = search.get("preview") === "1";
 
+  // ⭐ Pass pageNumber to each reader —
+  // readers take care of scroll/refresh fixes internally.
   if (slug === "dreamland") {
     return (
       <ReaderDreamland
@@ -108,6 +117,7 @@ export default function ReaderRouter() {
         chapters={chapters}
         titles={titles}
         preview={preview}
+        page={pageNumber}          // ⭐ added
       />
     );
   }
@@ -117,12 +127,20 @@ export default function ReaderRouter() {
       <ReaderSunshine
         title={titles[0]}
         paragraphs={chapters[0] || []}
+        page={pageNumber}          // ⭐ added
       />
     );
   }
 
   if (slug === "kryx") {
-    return <KryxReader slug={slug} titles={titles} chapters={chapters} />;
+    return (
+      <KryxReader
+        slug={slug}
+        titles={titles}
+        chapters={chapters}
+        page={pageNumber}          // ⭐ added
+      />
+    );
   }
 
   return (
@@ -132,6 +150,7 @@ export default function ReaderRouter() {
       chapters={chapters}
       titles={titles}
       preview={preview}
+      page={pageNumber}            // ⭐ added
     />
   );
 }

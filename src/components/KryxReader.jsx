@@ -1,36 +1,64 @@
 // src/components/KryxReader.jsx
 import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useSwipe from "../hooks/useSwipe.js";
 import useEdgeTap from "../hooks/useEdgeTap.js";
 
-export default function KryxReader({ chapters, titles }) {
-  const [index, setIndex] = useState(0);
+export default function KryxReader({
+  slug = "kryx",
+  chapters = [],
+  titles = [],
+  page = 1,               // ⭐ NEW: URL param (1-based)
+}) {
+  const navigate = useNavigate();
+
+  const maxIndex = chapters.length * 2 - 1;
+
+  // ⭐ Convert URL page → internal index
+  const initialIndex = Math.max(0, Math.min(maxIndex, Number(page) - 1));
+
+  const [index, setIndex] = useState(initialIndex);
+
+  // ⭐ If URL param changes — update index (fix refresh/back/forward)
+  useEffect(() => {
+    const urlIndex = Math.max(0, Math.min(maxIndex, Number(page) - 1));
+    if (urlIndex !== index) setIndex(urlIndex);
+  }, [page]);
+
   const total = chapters.length;
+
+  // Determine whether this is an image or text page
   const isImagePage = index % 2 === 0;
   const chapterIndex = Math.floor(index / 2);
   const chapter = chapters[chapterIndex];
 
-  // NAV HANDLERS
-  function next() {
-    if (index < total * 2 - 1) setIndex(index + 1);
+  // ⭐ URL-syncing navigation
+  function goTo(newIndex) {
+    const safeIndex = Math.max(0, Math.min(maxIndex, newIndex));
+    setIndex(safeIndex);
+
+    // +1 because URL is 1-based
+    navigate(`/read/${slug}/${safeIndex + 1}`);
   }
 
-  function prev() {
-    if (index > 0) setIndex(index - 1);
-  }
+  function next() { goTo(index + 1); }
+  function prev() { goTo(index - 1); }
 
-  // GESTURES
+  // ⭐ Gestures
   const swipeBind = useSwipe({ onLeft: next, onRight: prev });
   const tapBind = useEdgeTap({ onLeft: prev, onRight: next });
 
-  // COPY + SELECT DISABLE
+  // ⭐ Scroll reset on page change
   const containerRef = useRef(null);
+  useEffect(() => {
+    containerRef.current?.scrollTo({ top: 0, behavior: "auto" });
+  }, [index]);
+
+  // ⭐ Disable text selection / copying
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
-    // block context menu + copy
     const prevent = (e) => e.preventDefault();
     el.addEventListener("contextmenu", prevent);
     el.addEventListener("copy", prevent);
@@ -54,7 +82,7 @@ export default function KryxReader({ chapters, titles }) {
     >
       <div className="max-w-3xl mx-auto text-center select-none">
 
-        {/* Header */}
+        {/* HEADER */}
         <header className="flex justify-between items-center mb-4">
           <span className="text-neutral-400 text-sm tracking-widest">
             K R Y X
@@ -87,18 +115,26 @@ export default function KryxReader({ chapters, titles }) {
 
         {/* NAVIGATION */}
         <footer className="mt-6 flex items-center justify-between text-sm text-neutral-300">
-          <button onClick={prev} disabled={index === 0}
-            className="hover:text-white disabled:opacity-30">
+          <button
+            onClick={prev}
+            disabled={index === 0}
+            className="hover:text-white disabled:opacity-30"
+          >
             ◀ Prev
           </button>
 
           <div>
             {chapterIndex + 1} / {total}
-            <span className="text-neutral-500 text-xs"> ({isImagePage ? "image" : "text"})</span>
+            <span className="text-neutral-500 text-xs">
+              {" "}{isImagePage ? "(image)" : "(text)"}
+            </span>
           </div>
 
-          <button onClick={next} disabled={index === total * 2 - 1}
-            className="hover:text-white disabled:opacity-30">
+          <button
+            onClick={next}
+            disabled={index === maxIndex}
+            className="hover:text-white disabled:opacity-30"
+          >
             Next ▶
           </button>
         </footer>

@@ -8,21 +8,18 @@ import Library from "./pages/Library.jsx";
 import WorkDetail from "./pages/WorkDetail.jsx";
 import ReaderRouter from "./pages/ReaderRouter.jsx";
 
-// ✅ Import Billing and diagBilling once
+// Import Billing once
 import Billing from "./utils/billing";
 
 export default function App() {
   useEffect(() => {
-    // 🧩 Keeps the Billing module bundled (prevents tree-shaking)
+    // Ensures Billing module stays bundled
     Billing.getSkuDetails?.();
 
-    // ✅ Restore purchases silently on app launch
+    // Restore purchases silently on app launch
     Billing.restore().catch(() => {
       // Ignore errors outside Play environment
     });
-
-    // (Optional for testing) run diagnostics overlay:
-    // diagBilling();
   }, []);
 
   return (
@@ -35,6 +32,11 @@ export default function App() {
           <Route path="/" element={<Entry />} />
           <Route path="/library" element={<Library />} />
           <Route path="/work/:slug" element={<WorkDetail />} />
+
+          {/* ⭐ NEW: support page numbers */}
+          <Route path="/read/:slug/:page" element={<ReaderRouter />} />
+
+          {/* Backwards compatible route */}
           <Route path="/read/:slug" element={<ReaderRouter />} />
         </Routes>
       </main>
