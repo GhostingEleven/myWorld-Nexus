@@ -1,6 +1,6 @@
 // src/components/ReaderSunshine.jsx
 import React, { useMemo, useRef, useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import DonationModal from "./DonationModal.jsx";
 import useSwipe from "../hooks/useSwipe.js";
 import useEdgeTap from "../hooks/useEdgeTap.js";
@@ -8,48 +8,58 @@ import useEdgeTap from "../hooks/useEdgeTap.js";
 export default function ReaderSunshine({
   title = "SUNSHINE PUNK — ACT I",
   paragraphs = [],
-  page = 1,
+  page = 1,  // kept but not strictly required for scroll logic
 }) {
-  const navigate = useNavigate();
-
-  // Convert URL page → index
-  const initialIndex = Math.max(0, Number(page) - 1);
-  const [index, setIndex] = useState(initialIndex);
+  const [index, setIndex] = useState(Math.max(0, Number(page) - 1));
   const [showDonate, setShowDonate] = useState(false);
+
   const lastIndex = Math.max(0, paragraphs.length - 1);
-
-  const scrollRef = useRef(null);
-
-  // URl → internal sync
-  useEffect(() => {
-    const newIndex = Math.max(0, Number(page) - 1);
-    if (newIndex !== index) setIndex(newIndex);
-  }, [page]);
-
-  // Navigation with URL sync
-  function goTo(i) {
-    const safe = Math.max(0, Math.min(lastIndex, i));
-    setIndex(safe);
-    navigate(`/read/sunshine-punk/${safe + 1}`);
-  }
-  function next() { goTo(index + 1); }
-  function prev() { goTo(index - 1); }
-
-  // Apply scroll-to-top on correct container
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
-  }, [index]);
+  const pageText = useMemo(() => paragraphs[index] || "", [paragraphs, index]);
+  const parts = useMemo(() => (pageText ? pageText.split(/\n\s*\n/) : []), [pageText]);
 
   const containerRef = useRef(null);
-  const swipeBind = useSwipe({ onLeft: next, onRight: prev });
-  const tapBind   = useEdgeTap({ onLeft: prev, onRight: next, edgePercent: 0.18 });
+  const contentRef = useRef(null);
 
-  const text = paragraphs[index] || "";
-  const parts = text.split(/\n\s*\n/);
+  // Scroll like ReaderSciFi
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      contentRef.current?.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [index]);
+
+  function next() { if (index < lastIndex) setIndex(index + 1); }
+  function prev() { if (index > 0) setIndex(index - 1); }
+
+  const swipeBind = useSwipe({ onLeft: next, onRight: prev });
+  const tapBind = useEdgeTap({ onLeft: prev, onRight: next, edgePercent: 0.18 });
+
+  // Copy-disable like Angeldown
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const prevent = (e) => e.preventDefault();
+    el.addEventListener("contextmenu", prevent);
+    el.addEventListener("copy", prevent);
+    el.style.userSelect = "none";
+    el.style.webkitUserSelect = "none";
+    el.style.webkitTouchCallout = "none";
+    el.style.webkitUserDrag = "none";
+    return () => {
+      el.removeEventListener("contextmenu", prevent);
+      el.removeEventListener("copy", prevent);
+    };
+  }, []);
 
   return (
-    <section className="min-h-screen relative text-white">
-
+    <section
+      className="min-h-screen relative text-white select-none"
+      ref={containerRef}
+      {...swipeBind}
+      {...tapBind}
+    >
       {/* Background */}
       <div
         className="fixed inset-0 -z-10"
@@ -60,67 +70,89 @@ export default function ReaderSunshine({
         }}
       />
 
-      {/* ⭐ SCROLL REF GOES HERE */}
-      <div
-        ref={scrollRef}
-        className="relative z-10 max-w-6xl mx-auto pt-20 px-4 pb-24 grid grid-cols-1 lg:grid-cols-5 gap-6"
-        {...swipeBind}
-        {...tapBind}
-      >
-
-        {/* Left panel */}
+      <div className="relative z-10 max-w-6xl mx-auto pt-20 px-4 pb-24 grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* LEFT PANEL */}
         <aside className="lg:col-span-2">
-          <div className="lg:sticky lg:top-24 text-center mt-4 select-none">
-            <div className="text-[0.8rem] tracking-[0.25em] text-yellow-200/85">— ACT —</div>
-            <h1 className="mt-1 text-xl md:text-2xl tracking-[0.18em] font-medium">SUNSHINE PUNK</h1>
-            <h2 className="text-sm md:text-base tracking-[0.35em] text-neutral-300 font-light">ACT I</h2>
+          <div className="lg:sticky lg:top-24">
+            <div className="text-center mt-4">
+              <div className="text-[0.8rem] tracking-[0.25em] text-yellow-200/85">— ACT —</div>
+              <h1 className="mt-1 text-xl md:text-2xl tracking-[0.18em] font-medium">
+                SUNSHINE PUNK
+              </h1>
+              <h2 className="text-sm md:text-base tracking-[0.35em] text-neutral-300 font-light">
+                ACT I
+              </h2>
 
-            <div
-              className="mx-auto mt-3 h-px"
-              style={{ width: "220px", background: "linear-gradient(90deg, transparent, rgba(245,200,80,.55), transparent)" }}
-            />
+              <div
+                className="mx-auto mt-3 h-px"
+                style={{
+                  width: "220px",
+                  background:
+                    "linear-gradient(90deg, transparent, rgba(245, 200, 80, 0.55), transparent)",
+                }}
+              />
 
-            <button
-              onClick={() => setShowDonate(true)}
-              className="mt-5 w-full px-4 py-2.5 rounded-lg border border-yellow-300/70 
-                         text-yellow-200 bg-black/40 backdrop-blur shadow-[0_0_18px_rgba(245,200,80,0.18)] 
-                         hover:border-yellow-200 hover:text-yellow-100 transition"
-            >
-              Tip / Support / Donate
-            </button>
+              <button
+                onClick={() => setShowDonate(true)}
+                className="mt-5 w-full px-4 py-2.5 rounded-lg border text-[0.95rem]
+                border-yellow-300/70 text-yellow-200 bg-black/40 backdrop-blur
+                shadow-[0_0_18px_rgba(245,200,80,0.18)]
+                hover:border-yellow-200 hover:text-yellow-100
+                transition"
+                style={{
+                  textShadow: "0 0 8px rgba(245,200,80,0.35)",
+                  boxShadow: "0 0 20px rgba(245,200,80,0.15) inset, 0 0 24px rgba(245,200,80,0.12)",
+                }}
+              >
+                Tip / Support / Donate
+              </button>
+            </div>
           </div>
         </aside>
 
-        {/* Right panel */}
-        <main className="lg:col-span-3 select-none">
-
+        {/* RIGHT PANEL */}
+        <main className="lg:col-span-3">
           {paragraphs.length === 0 ? (
             <div className="glass p-4 rounded-xl text-neutral-300">
-              Unable to load Sunshine Punk Act I.
+              Unable to load Sunshine Punk Act I. Ensure files exist in{" "}
+              <code className="ml-1 text-yellow-200">/public/sunshine/act-1/part-*.txt</code>.
             </div>
           ) : (
-            <article className="leading-relaxed text-[1.06rem] text-neutral-200">
-              {parts.map((p, i) => (
-                <p key={i} className="mb-4">{p}</p>
-              ))}
+            <div
+              ref={contentRef}
+              className="md:max-h-[70vh] md:overflow-y-auto pr-1"
+            >
+              <article className="leading-relaxed text-[1.06rem] text-neutral-200">
+                {parts.map((p, i) => (
+                  <p key={i} className="mb-4">{p}</p>
+                ))}
 
-              <footer className="mt-8 flex items-center justify-between text-sm text-neutral-300">
-                <button onClick={prev} disabled={index === 0} className="hover:text-white disabled:opacity-30">◀ Previous</button>
-                <div>{index + 1} / {lastIndex + 1}</div>
-                <button onClick={next} disabled={index === lastIndex} className="hover:text-white disabled:opacity-30">Next ▶</button>
-              </footer>
+                <footer className="mt-8 flex items-center justify-between text-sm text-neutral-300">
+                  <button onClick={prev} disabled={index === 0} className="hover:text-white disabled:opacity-30">
+                    ◀ Previous
+                  </button>
+                  <div>{index + 1} / {lastIndex + 1}</div>
+                  <button onClick={next} disabled={index === lastIndex} className="hover:text-white disabled:opacity-30">
+                    Next ▶
+                  </button>
+                </footer>
 
-              <div className="text-center mt-6">
-                <Link to="/library" className="text-sm text-neutral-400 hover:text-neutral-200 underline underline-offset-4">
-                  Exit to Library
-                </Link>
-              </div>
-            </article>
+                <div className="text-center mt-6">
+                  <Link to="/library" className="text-sm text-neutral-400 hover:text-neutral-200 underline underline-offset-4">
+                    Exit to Library
+                  </Link>
+                </div>
+              </article>
+            </div>
           )}
         </main>
       </div>
 
-      <DonationModal open={showDonate} title="Support the Author — Sunshine Punk" onClose={() => setShowDonate(false)} />
+      <DonationModal
+        open={showDonate}
+        title="Support the Author — Sunshine Punk"
+        onClose={() => setShowDonate(false)}
+      />
     </section>
   );
 }
