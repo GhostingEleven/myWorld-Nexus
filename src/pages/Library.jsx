@@ -59,6 +59,10 @@ export default function Library() {
           );
         })}
       </div>
+      <div className="text-center text-neutral-500 text-xs mt-12 mb-6 opacity-70">
+  All works authored by <span className="text-neutral-300">Aidan Daley</span><br />
+  © {new Date().getFullYear()}
+</div>
     </section>
   );
 }
