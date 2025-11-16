@@ -14,6 +14,5 @@ export const sketchyNFTs = [
   { id: 12, title: "Sketchy #12", img: "/nfts/sketchy-12.jpg", link: "https://opensea.io/collection/sketchy-nfts-227228429" },
   { id: 13, title: "Sketchy #13", img: "/nfts/sketchy-13.jpg", link: "https://opensea.io/collection/sketchy-nfts-227228429" },
   { id: 14, title: "Sketchy #14", img: "/nfts/sketchy-14.jpg", link: "https://opensea.io/collection/sketchy-nfts-227228429" },
-  { id: 15, title: "Sketchy #15", img: "/nfts/sketchy-15.jpg", link: "https://opensea.io/collection/sketchy-nfts-227228429"/" }
+  { id: 15, title: "Sketchy #15", img: "/nfts/sketchy-15.jpg", link: "https://opensea.io/collection/sketchy-nfts-227228429" }
 ];
-    
