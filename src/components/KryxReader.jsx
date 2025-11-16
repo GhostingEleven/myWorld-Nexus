@@ -24,7 +24,7 @@ export default function KryxReader({ chapters, titles }) {
   const swipeBind = useSwipe({ onLeft: next, onRight: prev });
   const tapBind = useEdgeTap({ onLeft: prev, onRight: next });
 
-  // Scroll behaviour like ReaderSciFi
+  // ⭐ Scroll behaviour identical to Angeldown
   useEffect(() => {
     const isMobile = window.innerWidth < 768;
     if (isMobile) {
@@ -34,7 +34,7 @@ export default function KryxReader({ chapters, titles }) {
     }
   }, [index]);
 
-  // Copy/selection disable
+  // ⭐ Copy-disable (same as Angeldown)
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -71,7 +71,7 @@ export default function KryxReader({ chapters, titles }) {
           </Link>
         </header>
 
-        {/* BODY */}
+        {/* Body */}
         <div
           className="rounded-2xl overflow-hidden bg-black/60 border border-white/10 backdrop-blur-sm"
           style={{ boxShadow: "0 0 18px rgba(59,224,255,0.25)" }}
@@ -85,17 +85,24 @@ export default function KryxReader({ chapters, titles }) {
           ) : (
             <div
               ref={contentRef}
-              className="p-6 text-left leading-relaxed whitespace-pre-line pointer-events-none md:max-h-[70vh] md:overflow-y-auto"
+              className="
+                p-6 text-left leading-relaxed whitespace-pre-line
+                md:max-h-[70vh] md:overflow-y-auto
+                pointer-events-auto   /* ⭐ FIXED */
+              "
             >
               <h2 className="text-xl font-semibold text-center mb-4">
                 {chapter.title}
               </h2>
-              <p className="text-neutral-200">{chapter.text}</p>
+
+              <p className="text-neutral-200">
+                {chapter.text}
+              </p>
             </div>
           )}
         </div>
 
-        {/* NAVIGATION */}
+        {/* Navigation */}
         <footer className="mt-6 flex items-center justify-between text-sm text-neutral-300">
           <button onClick={prev} disabled={index === 0}
             className="hover:text-white disabled:opacity-30">
@@ -104,7 +111,9 @@ export default function KryxReader({ chapters, titles }) {
 
           <div>
             {chapterIndex + 1} / {total}
-            <span className="text-neutral-500 text-xs"> ({isImagePage ? "image" : "text"})</span>
+            <span className="text-neutral-500 text-xs">
+              {" "}{isImagePage ? "(image)" : "(text)"}
+            </span>
           </div>
 
           <button onClick={next} disabled={index === total * 2 - 1}
