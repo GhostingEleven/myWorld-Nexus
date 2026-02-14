@@ -27,9 +27,6 @@ export default function PurchaseModal({ open, title, onClose }) {
           Purchase to unlock permanently on this device.
         </p>
 
-        {/* Display price placeholder — will later auto-update with Billing.getPrice() */}
-        <p className="mt-3 text-neon-blue font-semibold">$7.99</p>
-
         <div className="mt-6 flex gap-3 justify-end">
           <button
             onClick={onClose}
