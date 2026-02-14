@@ -20,8 +20,8 @@
     "path": "C:\\myworld-android\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "18",
-  "appVersionCode": 18,
+  "appVersionName": "20",
+  "appVersionCode": 20,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://my-world-nexus-cdta.vercel.app/manifest.json",
@@ -47,5 +47,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "18"
+  "appVersion": "20"
 }
