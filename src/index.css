@@ -7,6 +7,10 @@
 body {
   color: #213547;
   background-color: #ffffff;
+
+  /* Edge-to-edge safe area handling for phones */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 a:hover {
